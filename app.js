@@ -14,6 +14,7 @@ const useragent = require('express-useragent');
 const uuid = require('uuid');
 const WebSocket = require('ws');
 const lowdb = require('lowdb');
+const readline = require('readline');
 
 const privateKey = fs.readFileSync('./src/sslcert/localhost.key', 'utf8');
 const certificate = fs.readFileSync('./src/sslcert/localhost.crt', 'utf8');
@@ -73,13 +74,14 @@ module.exports = {
   doGzip,
   zlib,
   WebSocket,
-  uuid
+  uuid,
+  readline
 };
 
 require('./src/routes.js')(app);
 
 const server = spdy.createServer(credentials, app).listen(config.port, config.hostname, async () => {
-  console.log(`[Server] Listening on ${config.hostname}:${config.port}`);
+  console.log(`[Server] Listening on https://${config.hostname}:${config.port}`);
 
   initDatabase()
     .then(async (database) => {
@@ -87,10 +89,7 @@ const server = spdy.createServer(credentials, app).listen(config.port, config.ho
 
       if (accountsCount === 0) {
         await createDefaultDirectories();
-
-        const accountManager = require('./src/modules/account_manager');
-        accountManager.createDefaultAccount('RuisPipe', 'ruispipe@roese.dev', 'ruispipe', 2);
-        accountManager.createDefaultAccount('Gast', 'gast@roese.dev', 'gast1234', 1);
+        require('./src/modules/account_manager').createMasterAccount();
       }
 
       require('./src/modules/email_manager').connect();

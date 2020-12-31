@@ -70,6 +70,81 @@ exports.createAccount = async (req, res) => {
   }
 }
 
+exports.createMasterAccount = async () => {
+  const rl = app.readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  console.log('\nCreate the main account of your password manager \n');
+
+  const account = {min: app.config.account.username.min, max: app.config.account.username.max};
+  const email = {min: app.config.account.email.min, max: app.config.account.email.max};
+  const password = {min: app.config.password.password.min, max: app.config.password.password.max};
+
+  const steps = {
+    start: async () => {
+      const username = await steps.questionUsername();
+      const email = await steps.questionEmail();
+      const password = await steps.questionPassword();
+
+      steps.end(username, email, password);
+    },
+    questionUsername: () => {
+      return new Promise((resolve) => {
+        rl.question(`Choose your username between ${account.min} and ${account.max} characters\nUsername: `, (answer) => {
+          if (answer.length < account.min) {
+            console.log('\nError: Username is too short\n');
+            return steps.start();
+          } else if (answer.length > account.max) {
+            console.log('\nError: Username is too long\n');
+            return steps.start();
+          } else {
+            resolve(answer);
+          }
+        });
+      });
+    },
+    questionEmail: () => {
+      return new Promise((resolve) => {
+        rl.question(`\nChoose your email between ${email.min} and ${email.max} characters\nEmail: `, (answer) => {
+          if (answer.length < email.min) {
+            console.log('\nError: Email is too short\n');
+            return steps.start();
+          } else if (answer.length > email.max) {
+            console.log('\nError: Email is too long\n');
+            return steps.start();
+          } else {
+            resolve(answer);
+          }
+        });
+      });
+    },
+    questionPassword: () => {
+      return new Promise((resolve) => {
+        rl.question(`\nChoose your password between ${password.min} and ${password.max} characters\nPassword: `, (answer) => {
+          if (answer.length < password.min) {
+            console.log('\nError: Password is too short\n');
+            return steps.start();
+          } else if (answer.length > password.max) {
+            console.log('\nError: Password is too long\n');
+            return steps.start();
+          } else {
+            resolve(answer);
+          }
+        });
+      });
+    },
+    end: async (username, email, password) => {
+      console.log(' ');
+      this.createDefaultAccount(username, email, password, 2);
+      rl.close();
+    }
+  }
+  
+  steps.start();
+}
+
 exports.createDefaultAccount = async (username, email, password, permissionsLevel) => {
   let hashedPassword;
 
@@ -92,9 +167,7 @@ exports.createDefaultAccount = async (username, email, password, permissionsLeve
     passwords: [],
     symbols: app.config.symbols.default,
     passwordLimit: app.config.account.password.limit,
-    lastLogin: null,
     createdAt: Date.now(),
-    modifiedAt: null,
   };
 
   await app.database.get('accounts').push(account).write();
@@ -103,7 +176,13 @@ exports.createDefaultAccount = async (username, email, password, permissionsLeve
 
   await this.createAccountDirectories(accountId);
 
-  console.log(`Default account created -> username: ${username} email: ${email} password: ${password}`);
+  console.log('Default account created');
+  console.log(' ');
+  console.log('Username:', username);
+  console.log('Email:', email);
+  console.log('Password:', password);
+  console.log(' ');
+  console.log(`Open your browser and go to https://${app.config.hostname}:${app.config.port}${app.config.redirectPath}`);
 }
 
 exports.createAccountDirectories = async (accountId) => {
