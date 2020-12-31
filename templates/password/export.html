@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passwords</title>
+
+    <style>
+      body {
+        margin: 20px;
+        color: #fff;
+        font-family: 'Open Sans', sans-serif;
+        box-sizing: border-box;
+        background-color: #363636;
+        min-width: 300px;
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      table {
+        width: 100%;
+        height: 100%;
+        border-collapse: collapse;
+        background-color: #1f1f1f;
+        display: inline-block;
+        overflow: auto;
+        table-layout: fixed;
+        border-radius: 5px;
+        box-shadow: 0 0 1em #000;
+      }
+
+      tr {
+        text-align: left;
+      }
+
+      th {
+        border-bottom: 1px solid #fff;
+      }
+
+      th,
+      td {
+        max-width: 300px;
+        vertical-align: top;
+        padding: 8px;
+      }
+
+      td {
+        word-break: break-all;
+      }
+
+      a {
+        color: #44bd32;
+        opacity: 0.8;
+        text-decoration: none;
+      }
+
+      a:hover,
+      a:active {
+        opacity: 1;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Passwords</h1>
+
+    <table>
+      <tr>
+        <th style="min-width: 100px; width: 10%;">Id</th>
+        <th style="min-width: 150px; width: 10%;">Name</th>
+        <th style="min-width: 150px; width: 10%;">Password</th>
+        <th style="min-width: 150px; width: 10%;">Platform</th>
+        <th style="min-width: 150px; width: 10%;">Url</th>
+        <th style="min-width: 150px; width: 10%;">Username</th>
+        <th style="min-width: 150px; width: 10%;">Email</th>
+        <th style="min-width: 150px; width: 10%;">Description</th>
+        <th style="min-width: 200px; width: 10%;">Created at</th>
+        <th style="min-width: 200px; width: 10%;">Modified at</th>
+      </tr>
+      %list%
+    </table>
+
+    %histories%
+  </body>
+</html>

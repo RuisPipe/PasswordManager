@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PasswordManager</title>
+    <link rel="stylesheet" href="/assets/css/style.min.css">
+    <link rel="stylesheet" href="/assets/css/fontawesome/all.css">
+    <script src="/assets/js/crypto-js/crypto-js.min.js"></script>
+    <script type="module" src="/assets/js/script.min.js"></script>
+  </head>
+
+  <body>
+    <div id="page-loader" class="active">
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <p id="page-loader-status">loading ...</p>
+      </div>
+    </div>
+
+    <div id="popup-container"></div>
+
+    <div class="grid-container">
+      <div class="menu-icon">
+        <i class="fa fa-bars header__menu"></i>
+      </div>
+
+      <div class="header">
+        <div class="username-container">
+          <i class="fa fa-user" aria-hidden="true"></i>
+          <strong class="username">loading...</strong>
+        </div>
+      </div>
+
+      <div class="nav">
+        <div class="nav-icon-close">
+          <i class="fa fa-times"></i>
+        </div>
+
+        <div class="username-container">
+          <i class="fa fa-user" aria-hidden="true"></i>
+          <strong class="username">loading...</strong>
+        </div>
+
+        <ul class="nav-list">
+          <li class="nav-item nav-item-createpassword"><i class="fa fa-plus" aria-hidden="true"></i> Create Password</li>
+          <li class="nav-item nav-item-passwords"><i class="fa fa-lock" aria-hidden="true"></i> Passwords</li>
+          <hr>
+          <li class="nav-item nav-item-accountsettings"><i class="fa fa-cog" aria-hidden="true"></i> Account Settings</li>
+          <li class="nav-item nav-item-serversettings"><i class="fa fa-cog" aria-hidden="true"></i> Server Settings</li>
+          <li class="nav-item nav-item-logout"><i class="fa fa-sign-out-alt" aria-hidden="true"></i> Log Out</li>
+        </ul>
+      </div>
+
+      <div class="content-createpassword">
+        <div class="cards">
+          <div class="card">
+            <form>
+              <h1>create new password</h1>
+
+              <label>Name:</label>
+              <input type="text" class="background-icon" name="name" placeholder="Your password name..." required>
+                  
+              <label>Platform:</label>
+              <input type="text" class="background-icon" name="platform" placeholder="Your platform...">
+              
+              <label>Url:</label>
+              <input type="text" class="background-icon" name="url" placeholder="Your website url....">
+
+              <label>Username:</label>
+              <input type="text" class="background-icon" name="username" placeholder="Your username...">
+                
+              <label>Email:</label>
+              <input type="text" class="background-icon" name="email" placeholder="Your email...">
+                
+              <label>Description:</label>
+              <textarea class="background-icon" name="description" placeholder="Your password description..."></textarea>
+
+              <h3>Password options</h3>
+
+              <label class="checkbox-container">A-Z
+                <input type="checkbox" name="checkBoxLetters">
+                <span class="checkmark"></span>
+              </label>
+              <label class="checkbox-container">0-9
+                <input type="checkbox" name="checkBoxNumbers">
+                <span class="checkmark"></span>
+              </label>
+              <label class="checkbox-container">
+                <input type="checkbox" name="checkBoxSymbols">
+                <input type="text" name="symbols">
+                <span class="checkmark"></span>
+              </label>
+
+              <div>
+                <p>Password length: <span class="slider-text" style="color: #44bd32;"></span></p>
+                <input type="range" class="slider" name="slider">
+              </div>
+              <input type="submit" name="submit" value="create password">
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-passwords">
+        <div class="search-password">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          <input type="search" id="search-password" placeholder="Search for password...">
+          <i class="fa fa-times" aria-hidden="true"></i>
+        </div>
+
+        <div class="loader">
+          <i class="fa fa-spinner fa-pulse fa-fw"></i>
+        </div>
+
+        <h1 id="nopasswords"></h1>
+
+        <div class="modal">
+          <div class="modal-container">
+            <div class="modal-header">
+              <h4 class="title"></h4>
+              <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+            </div>
+            <div class="modal-body">
+              <form enctype="multipart/form-data">
+                <label>Name:</label>
+                <input type="text" class="background-icon" name="name" placeholder="Your password name..." required>
+                
+                <label>Platform:</label>
+                <input type="text" class="background-icon" name="platform" placeholder="Your platform...">
+                
+                <label>Url:</label>
+                <input type="text" class="background-icon" name="url" placeholder="Your website url...">
+                
+                <label>Username:</label>
+                <input type="text" class="background-icon" name="username" placeholder="Your username...">
+                
+                <label>Email:</label>
+                <input type="text" class="background-icon" name="email" placeholder="Your email...">
+                
+                <label>Description:</label>
+                <textarea class="background-icon" name="description" placeholder="Your password description..."></textarea>
+
+                <label>Password:</label>
+                <input type="password" class="background-icon" name="password" placeholder="Your password...">
+                
+                <i id="icon-showpassword" class="fa fa-eye" aria-hidden="true"></i>
+                <i class="fa fa-redo icon-generatenewpassword" aria-hidden="true"> </i>
+            
+                <div class="generatenewpassword-container">
+                  <h3>Password options</h3>
+                  <label class="checkbox-container">A-Z
+                    <input type="checkbox" name="checkBoxLetters">
+                    <span class="checkmark"></span>
+                  </label>
+                  <label class="checkbox-container">0-9
+                    <input type="checkbox" name="checkBoxNumbers">
+                    <span class="checkmark"></span>
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="checkBoxSymbols">
+                    <input type="text" name="symbols">
+                    <span class="checkmark"></span>
+                  </label>
+
+                  <div>
+                    <p>Password length: <span class="slider-text" style="color: #44bd32;"></span></p>
+                    <input type="range" class="slider" name="slider">
+                  </div>
+                  <input type="button" class="button-generatenewpassword" name="buttonGenerate" value="generate new password">
+                </div>
+                
+                <div class="password-histories">
+                  <label>Password histories:</label>
+                </div>
+
+                <div class="buttons">
+                  <input type="submit" class="button-delete" name="buttonDelete" value="delete">
+                  <input type="submit" class="button-save" name="buttonSave" value="save">
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-accountsettings">
+        <div class="main-overview">
+          <div class="overviewcard">
+            <div class="overviewcard-title">TOTAL PASSWORDS</div>
+            <div id="account-passwords" class="overviewcard-body">loading...</div>
+          </div>
+        </div>
+
+        <div id="modal-passwords-import" class="modal">
+          <div class="modal-container">
+            <div class="modal-header">
+              <h4 class="title">Passwords import</h4>
+              <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div id="import-container">
+                  <p>Select import type:</p>
+                  <select name="type">
+                    <option value="decryptedCsv">Decrypted as cvg file</option>
+                    <option value="encryptedCsv">Encrypted as cvg file</option>
+                    <option value="encryptedJson">Encrypted as json file</option>
+                  </select>
+  
+                  <div id="password-container">
+                    <label>Password:</label>
+                    <input type="password" class="background-icon" name="password" placeholder="Password...">
+                  </div>
+                </div>
+
+                <div id="preview-container">
+                  <table>
+                    <tr>
+                      <th>Id</th>
+                      <th>Name</th>
+                      <th>Password</th>
+                      <th>Platform</th>
+                      <th>Url</th>
+                      <th>Username</th>
+                      <th>Email</th>
+                      <th>Description</th>
+                      <th>Created at</th>
+                      <th>Modified at</th>
+                    </tr>
+                  </table>
+                </div>
+
+                <input type="submit" class="button-import" name="buttonImport" value="import">
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-passwords-export" class="modal">
+          <div class="modal-container">
+            <div class="modal-header">
+              <h4 class="title">Passwords export</h4>
+              <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+            </div>
+            <div class="modal-body">
+              <form>
+                <p>Select export type:</p>
+                <select name="type">
+                  <option value="decrypted">Decrypted as cvg file</option>
+                  <option value="encrypted">Encrypted as cvg file</option>
+                  <option value="html">Html file</option>
+                </select>
+
+                <div id="password-container">
+                  <label>Password:</label>
+                  <input type="password" class="background-icon" name="password" placeholder="Password...">
+                </div>
+
+                <input type="submit" class="button-export" name="buttonExport" value="export">
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-myaccount" class="modal">
+          <div class="modal-container">
+            <div class="modal-header">
+              <h4 class="title">loading...</h4>
+              <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+            </div>
+            <div class="modal-body">
+              <form>
+                <label>Username:</label>
+                <input type="text" class="background-icon" name="username" placeholder="Username..." required>
+
+                <label>Email:</label>
+                <input type="email" class="background-icon" name="email" placeholder="Email..." required>
+
+                <label>Symbols:</label>
+                <input type="text" class="background-icon" name="symbols" placeholder="Symbols..." required>
+
+                <label class="checkbox-container">Change password
+                  <input type="checkbox" name="checkBoxChangePassword">
+                  <span class="checkmark"></span>
+                </label>
+
+                <div class="change-password-container">
+                  <h3>Change password</h3>
+                  <label>Old password</label>
+                  <input type="password" class="background-icon" name="oldPassword">
+                  <br>
+                  <label>New password</label>
+                  <input type="password" class="background-icon" name="newPassword">
+                  <br>
+                  <label>Confirm new password</label>
+                  <input type="password" class="background-icon" name="confirmNewPassword">
+
+                  <label class="checkbox-container">Send new password via email
+                    <input type="checkbox" name="checkBoxSendEmail">
+                    <span class="checkmark"></span>
+                  </label>
+                </div>
+
+                <input type="submit" class="button-save" name="buttonSave" value="save">
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="space-between">
+               <h1>Informations</h1>
+               <div>
+                  <i class="fa fa-upload" aria-hidden="true"></i>
+                  <i class="fa fa-download" aria-hidden="true"></i>
+                  <i class="fa fa-desktop" aria-hidden="true"></i>
+                  <i class="fa fa-cog" aria-hidden="true"></i>
+               </div>
+            </div>
+
+            <h4>Id:</h4>
+            <p id="account-id">loading...</p>
+
+            <h4>Username:</h4>
+            <p id="account-username">loading...</p>
+
+            <h4>Email:</h4>
+            <p id="account-email">loading...</p>
+
+            <h4>Rank:</h4>
+            <p id="account-permissionslevel">loading...</p>
+
+            <h4>Symbols:</h4>
+            <p id="account-symbols">loading...</p>
+
+            <h4>Passwords limit:</h4>
+            <p id="account-passwordlimit">loading...</p>
+
+            <h4>Last login:</h4>
+            <p id="account-lastlogin">loading...</p>
+
+            <h4>Created at:</h4>
+            <p id="account-createdat">loading...</p>
+
+            <h4>Modified at:</h4>
+            <p id="account-modifiedat">loading...</p>
+          </div>
+          
+          <div class="card">
+            <h1>Sessions</h1>
+           
+            <div id="sessions"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="modal-account-log" class="modal">
+        <div class="modal-container">
+          <div class="modal-header">
+            <h4 class="title">loading...</h4>
+            <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+          </div>
+          <div class="modal-body">
+            <div class="modal-loader">
+              <div class="spinner-container">
+                <div class="spinner"></div>
+              </div>
+            </div>
+
+            <ul></ul>
+            
+            <div class="space-between">
+              <button class="button-last effect">
+                <span>&laquo;</span>
+              </button>
+              
+              <button class="button-next effect">
+                <span>&raquo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-serversettings">
+        <div class="main-overview">
+          <div class="overviewcard">
+            <div class="overviewcard-title">TOTAL ACCOUNTS</div>
+            <div id="total-accounts" class="overviewcard-body">loading...</div>
+          </div>
+
+          <div class="overviewcard">
+            <div class="overviewcard-title">TOTAL PASSWORDS</div>
+            <div id="total-passwords" class="overviewcard-body">loading...</div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <ul>
+            <li class="tab-item-accounts">accounts</li>
+            <li class="tab-item-logs">logs</li>
+          </ul>
+        </div>
+        
+        <div class="tab-content-accounts">
+          <div class="search-password">
+            <button id="create-account">
+              <i class="fa fa-plus" aria-hidden="true"></i>
+            </button>
+            
+            <i class="fa fa-search" aria-hidden="true"></i>
+            <input type="search" id="search-account" placeholder="Search for account...">
+            <i class="fa fa-times" aria-hidden="true"></i>
+          </div>
+
+          <!--<div class="loader active">
+            <i class="fa fa-spinner fa-pulse fa-fw"></i>
+          </div> -->
+
+          <div id="modal-account-create" class="modal">
+            <div class="modal-container">
+              <div class="modal-header">
+                <h4 class="title">Create new account</h4>
+                <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <label>Username:</label>
+                  <input type="text" class="background-icon" name="username" placeholder="Username..." required>
+
+                  <label>Email:</label>
+                  <input type="email" class="background-icon" name="email" placeholder="Email..." required>
+
+                  <label>Rank:</label>
+                  <select name="rank">
+                    <option value="master" disabled>Master</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+
+                  <label class="checkbox-container">Generate random password
+                    <input type="checkbox" name="checkBoxGeneratePassword">
+                    <span class="checkmark"></span>
+                  </label>
+
+                  <div class="generatenewpassword-container">
+                    <h3>Password options</h3>
+                    <label class="checkbox-container">A-Z
+                      <input type="checkbox" name="checkBoxLetters">
+                      <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">0-9
+                      <input type="checkbox" name="checkBoxNumbers">
+                      <span class="checkmark"></span>
+                    </label>
+                    <label class="checkbox-container">
+                      <input type="checkbox" name="checkBoxSymbols">
+                      <input type="text" name="symbols">
+                      <span class="checkmark"></span>
+                    </label>
+
+                    <div>
+                      <p>Password length: <span id="slider-text-passwordlength" style="color: #44bd32;"></span></p>
+                      <input type="range" class="slider" name="sliderPasswordLength">
+                    </div>
+                    <input type="button" class="button-generatenewpassword" name="buttonGenerate" value="generate password">
+                    <label>Generated password:</label>
+                    <input type="text" name="generatedPassword">
+                  </div>
+
+                  <label class="checkbox-container">Send email with the login credentials
+                    <input type="checkbox" name="checkBoxSendEmail">
+                    <span class="checkmark"></span>
+                  </label>
+
+                  <div>
+                    <p>Passwords limit: <span id="slider-text-passwordlimit" style="color: #44bd32;"></span></p>
+                    <input type="range" class="slider" name="sliderPasswordsLimit">
+                  </div>
+
+                  <input type="submit" class="button-create" name="buttonCreate" value="create account">
+                </form>
+              </div>
+            </div>
+          </div>
+          
+          <div id="modal-account-edit" class="modal">
+            <div class="modal-container">
+              <div class="modal-header">
+                <h4 class="title">loading...</h4>
+                <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <label>Username:</label>
+                  <input type="text" class="background-icon" name="username" placeholder="Username..." required>
+
+                  <label>Email:</label>
+                  <input type="email" class="background-icon" name="email" placeholder="Email..." required>
+
+                  <label>Rank:</label>
+                  <select name="rank">
+                    <option value="master" disabled>Master</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+
+                  <div>
+                    <p>Passwords limit: <span class="slider-text" style="color: #44bd32;"></span></p>
+                    <input type="range" class="slider" name="sliderPasswordsLimit">
+                  </div>
+
+                  <label class="checkbox-container">Send email with the information of the changes
+                    <input type="checkbox" name="checkBoxSendEmail">
+                    <span class="checkmark"></span>
+                  </label>
+
+                  <div class="buttons">
+                    <input type="submit" class="button-delete" name="buttonDelete" value="delete">
+                    <input type="submit" class="button-save" name="buttonSave" value="save">
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="collapsible-masters"></div>
+          <div class="collapsible-admins"></div>
+          <div clasS="collapsible-users"></div>
+        </div>
+
+        <div class="tab-content-logs">
+          <div class="modal">
+            <div class="modal-container">
+              <div class="modal-header">
+                <h4 class="title">loading...</h4>
+                <i class="fa fa-times" id="icon-close" aria-hidden="true"></i>
+              </div>
+              <div class="modal-body">
+                <div class="modal-loader">
+                  <!--<i class="fa fa-spinner fa-pulse fa-fw"></i>-->
+
+                  <div class="spinner-container">
+                    <div class="spinner"></div>
+                  </div>
+                </div>
+
+                <ul></ul>
+                
+                <div class="space-between">
+                  <button class="button-last effect">
+                    <span>&laquo;</span>
+                  </button>
+                  <button class="button-next effect">
+                    <span>&raquo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>LIVE LOG</h2>
+              <i class="fa fa-history" aria-hidden="true"></i>
+            </div>
+            
+            <ul></ul>
+            <button id="scroll-bottom"><i class="fa fa-arrow-down" aria-hidden="true"></i></button>
+          </div>
+        </div>
+    </div>
+  </body>
+</html>
