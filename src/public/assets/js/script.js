@@ -1,10 +1,10 @@
-// https://javascript-minifier.com/
+/* https://javascript-minifier.com/ */
 
 if (!localStorage.getItem('key')) {
   window.location.href = '/login';
 }
 
-const webSocketServerLocation = `wss://${window.location.host}`;
+const webSocketServerLocation = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
 
 let config = undefined;
 let myAccount = undefined;
@@ -109,6 +109,7 @@ function main(result) {
   initModalMyAccountEdit();
   initMyAccountSettings();
   initMyAccountSessions(); 
+  initMyAccountPasswordTrash();
   initModalPasswordsImport();
   initModalPasswordsExport();
 
@@ -124,6 +125,8 @@ function main(result) {
       Password.clearPasswords();
     }
   } else {
+    showNoPasswordsMessage(false);
+
     try {
       const key = getKey();
     
@@ -163,7 +166,6 @@ function main(result) {
   }
 
   initModalPasswordEdit();
-
   initAccounts(result.accounts);
 }
 
@@ -271,6 +273,110 @@ function updateSession(session) {
 
 function removeSession(id) {
   contentAccountSettings.querySelector(`#session-${id}`).remove();
+}
+
+function initMyAccountPasswordTrash() {
+  const div = contentAccountSettings.querySelector('#passwordTrash');
+  const card = contentAccountSettings.querySelector('#card-passwordtrash');
+
+  handleShowPasswordTrash();
+
+  if (myAccount.passwordTrash.length !== 0) {
+    div.innerHTML = '';
+
+    for (const pwTrash of myAccount.passwordTrash) {
+      console.log(pwTrash)
+      addPasswordToTrash(pwTrash);
+    }
+  }
+
+  console.log(myAccount.passwordTrash, div)
+}
+
+function handleShowPasswordTrash() {
+  contentAccountSettings.querySelector('#card-passwordtrash').style.display = myAccount.passwordTrash.length === 0 ? 'none' : 'block';
+}
+
+function addPasswordToTrash(password) {
+  const key = getKey();
+
+  const decryptedPassword = {
+    name: CryptoJS.AES.decrypt(password.name, key).toString(CryptoJS.enc.Utf8),
+    deletedAt: CryptoJS.AES.decrypt(password.deletedAt, key).toString(CryptoJS.enc.Utf8)
+  };
+
+  console.log('pw', password, decryptedPassword)
+  const div = contentAccountSettings.querySelector('#passwordTrash');
+
+  const divPasswordTrash = createElement('div', {id: `password-trash-${password.id}`});
+  div.appendChild(divPasswordTrash);
+
+  const spaceBetween = createElement('div', {class: 'space-between'})
+  divPasswordTrash.appendChild(spaceBetween);
+
+  spaceBetween.appendChild(createElement('h4', {}, `${decryptedPassword.name} <span style="color: #d1d1d1">#</span>${password.id}`, true));
+
+  const iconDiv = createElement('div');
+  spaceBetween.appendChild(iconDiv);
+
+  const iconRestore = createElement('i', {'class': 'fa fa-redo', 'aria-hidden': true})
+  const iconDelete = createElement('i', {'class': 'fa fa-trash', 'aria-hidden': true})
+
+  iconDiv.appendChild(iconRestore)
+  iconDiv.appendChild(iconDelete)
+
+  const p = createElement('p', {}, 'From: ');
+  divPasswordTrash.appendChild(p)
+
+  p.appendChild(createElement('span', {'style': {'color': '#c0392b'}}, getFullTime(decryptedPassword.deletedAt)))
+
+  iconRestore.onclick = () => {
+    fetch('/pwtrash/restore', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `id=${password.id}`
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.logout) {
+        window.location.href = result.logout;
+        return; 
+      }
+
+      sendPopup('success', 'Password revoked');
+    });
+  };
+
+  iconDelete.onclick = () => {
+    fetch('/pwtrash/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `id=${password.id}`
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.logout) {
+        window.location.href = result.logout;
+        return; 
+      }
+
+      sendPopup('success', `Password <span style="color: #d1d1d1">#</span><b>${password.id}</b> was deleted from trash`);
+    });
+  };
+}
+
+function deletePasswordFromTrash(passwordId) {
+  const el = document.querySelector(`#password-trash-${passwordId}`);
+
+  if (el) {
+    el.remove();
+  }
+
+  myAccount.passwordTrash = myAccount.passwordTrash.filter(password => password.id !== passwordId);
 }
 
 function setAccount(type, value, color) {
@@ -1358,7 +1464,7 @@ function setInputIcon(element, value) {
       break;
     
     default: 
-      throw new Error("Unkown Input Icon value");
+      throw new Error("Unknown Input Icon value");
   }
 }
 
@@ -1639,7 +1745,7 @@ createPasswordForm.onsubmit = (event) => {
       username: createPasswordForm.username.value === '' ? undefined : CryptoJS.AES.encrypt(createPasswordForm.username.value, key).toString(),
       email: createPasswordForm.email.value === '' ? undefined : CryptoJS.AES.encrypt(createPasswordForm.email.value, key).toString(),
       description: createPasswordForm.description.value === '' ? undefined : CryptoJS.AES.encrypt(createPasswordForm.description.value, key).toString(),
-      createdAt: CryptoJS.AES.encrypt(Date.now().toString().toString(), key).toString()
+      createdAt: CryptoJS.AES.encrypt(Date.now().toString(), key).toString()
     };
 
     if (passwordsMap.size >= myAccount.passwordLimit) {
@@ -2032,12 +2138,18 @@ class ModalPasswordEdit {
     if (this.buttonDelete.value === 'sure?') {
       modalPasswordEdit.close();
 
+      const key = getKey();
+      const timestamp = Date.now().toString();
+      const hash = CryptoJS.AES.encrypt(timestamp, key).toString();
+
+      console.log('del', hash)
+
       fetch(`password/delete`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json; charset=utf-8'
         },
-        body: `passwordId=${password.id}`
+        body: JSON.stringify({passwordId: password.id, deletedAt: hash})
       })
       .then(response => response.json())
       .then(result => {
@@ -4290,7 +4402,6 @@ function startWebSocket(webSocketServerLocation) {
           id: encryptedPassword.id,
           name: CryptoJS.AES.decrypt(encryptedPassword.name, key).toString(CryptoJS.enc.Utf8),
           password: CryptoJS.AES.decrypt(encryptedPassword.password, key).toString(CryptoJS.enc.Utf8),
-          histories: encryptedPassword.histories,
           platform: encryptedPassword.platform === undefined ? '' : CryptoJS.AES.decrypt(encryptedPassword.platform, key).toString(CryptoJS.enc.Utf8),
           url: encryptedPassword.url === undefined ? '' : CryptoJS.AES.decrypt(encryptedPassword.url, key).toString(CryptoJS.enc.Utf8),
           username: encryptedPassword.username === undefined ? '' : CryptoJS.AES.decrypt(encryptedPassword.username, key).toString(CryptoJS.enc.Utf8),
@@ -4299,6 +4410,25 @@ function startWebSocket(webSocketServerLocation) {
           createdAt: CryptoJS.AES.decrypt(encryptedPassword.createdAt, key).toString(CryptoJS.enc.Utf8),
           modifiedAt: encryptedPassword.modifiedAt === undefined ? undefined : CryptoJS.AES.decrypt(encryptedPassword.modifiedAt, key).toString(CryptoJS.enc.Utf8),
         };
+
+        if (encryptedPassword.histories.length > 0) {
+          const histories = [];
+
+          for (const history of encryptedPassword.histories) {
+            const decryptedHistory = {
+              id: history.id,
+              password: CryptoJS.AES.decrypt(history.password, key).toString(CryptoJS.enc.Utf8),
+              deletedAt: CryptoJS.AES.decrypt(history.deletedAt, key).toString(CryptoJS.enc.Utf8)
+            };
+
+            histories.push(decryptedHistory);
+          }
+          decryptedPassword.histories = histories;
+        } else {
+          decryptedPassword.histories = [];
+        }
+
+        console.log('enc Hi', encryptedPassword.histories)
 
         if (passwordsMap.size === 0) {
           showNoPasswordsMessage(false);
@@ -4575,6 +4705,17 @@ function startWebSocket(webSocketServerLocation) {
 
       case 'removeSession':
         removeSession(data.id);
+        break;
+
+      case 'addPasswordToTrash':
+        addPasswordToTrash(data.password);
+        myAccount.passwordTrash.push(data.password);
+        handleShowPasswordTrash();
+        break;
+
+      case 'deletePasswordFromTrash':
+        deletePasswordFromTrash(data.id);
+        handleShowPasswordTrash();
         break;
 
       default:

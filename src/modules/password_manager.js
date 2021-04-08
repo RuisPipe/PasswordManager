@@ -166,6 +166,12 @@ exports.deletePassword = async (req, res) => {
 
   const accountId = await accountManager.getAccountIdBySessionId(req.cookies['user_session']);
 
+  this.addPasswordToTrash(accountId, req.body.deletedAt, await app.database.get('accounts')
+                                                                            .find({id: accountId})
+                                                                            .get('passwords')
+                                                                            .find({id: req.body.passwordId})
+                                                                            .value());
+
   await app.database.get('accounts')
                     .find({id: accountId})
                     .get('passwords')
@@ -238,4 +244,107 @@ exports.updatePassword = async (req, res) => {
   });
 
   logManager.log(req.cookies['user_session'], 'updated a password');
+}
+
+exports.addPasswordToTrash = async (accountId, deletedAt, password) => {
+  password.deletedAt = deletedAt;
+
+  await app.database.get('accounts')
+                    .find({id: accountId})
+                    .get('passwordTrash')
+                    .push(password)
+                    .write();
+
+  trashPw = {
+    id: password.id,
+    name: password.name,
+    deletedAt: password.deletedAt
+  }
+
+  socketManager.sendClientMessageByAccountId(accountId, {
+    type: 'addPasswordToTrash',
+    password: trashPw
+  });
+}
+
+exports.restorePasswordFromTrash = async (req, res) => {
+  const sessionIdValid = await accountManager.sessionIdValid(req.cookies['user_session']);
+
+  if (!sessionIdValid) {
+    accountManager.handleInvalidSession(res, true);
+    return;
+  }
+
+  
+  const accountId = await accountManager.getAccountIdBySessionId(req.cookies['user_session']);
+
+  const password = await app.database.get('accounts')
+                                    .find({id: accountId})
+                                    .get('passwordTrash')
+                                    .find({id: req.body.id})
+                                    .value();
+
+  await app.database.get('accounts')
+                    .find({id: accountId})
+                    .get('passwords')
+                    .push(password)
+                    .write();
+
+  res.status(201).json({});
+
+  const passwords = await app.database.get('accounts')
+                                      .find({id: accountId})
+                                      .get('passwords')
+                                      .value();
+
+  socketManager.broadcast({
+    type: 'updateAccount',
+    id: accountId, 
+    passwords: passwords.length
+  });
+
+  socketManager.sendClientMessageByAccountId(accountId, {
+    type: 'addPassword',
+    password: password
+  });
+
+  serverManager.countStats('passwords', true);
+  serverManager.sendNewStats();
+
+  logManager.log(req.cookies['user_session'], 'restored a password');
+
+  await app.database.get('accounts')
+                    .find({id: accountId})
+                    .get('passwordTrash')
+                    .remove({id: req.body.id})
+                    .write();
+
+  socketManager.sendClientMessageByAccountId(accountId, {
+    type: 'deletePasswordFromTrash',
+    id: req.body.id
+  });
+}
+
+exports.deletePasswordFromTrash = async (req, res) => {
+  const sessionIdValid = await accountManager.sessionIdValid(req.cookies['user_session']);
+
+  if (!sessionIdValid) {
+    accountManager.handleInvalidSession(res, true);
+    return;
+  }
+
+  const accountId = await accountManager.getAccountIdBySessionId(req.cookies['user_session']);
+
+  await app.database.get('accounts')
+              .find({id: accountId})
+              .get('passwordTrash')
+              .remove({id: req.body.id})
+              .write();
+
+  socketManager.sendClientMessageByAccountId(accountId, {
+    type: 'deletePasswordFromTrash',
+    id: req.body.id
+  });
+
+  res.status(200).json({});
 }

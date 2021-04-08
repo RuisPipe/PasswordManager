@@ -1039,7 +1039,7 @@ input[type=range]::-moz-focus-outer {
   font-weight: bold;
 }
 
-.content-accountsettings .card:first-child {
+.content-accountsettings .card {
   margin-bottom: 20px;
 }
 
@@ -1047,12 +1047,14 @@ input[type=range]::-moz-focus-outer {
   margin-bottom: 10px;
 }
 
+.content-accountsettings .fa-trash,
 .content-accountsettings .fa-sign-out-alt {
-  padding: 0;
+  padding: 0 0 0 10px;
   margin-top: 20px;
   transition: color 0.2s;
 }
 
+.content-accountsettings .fa-trash:hover,
 .content-accountsettings .fa-sign-out-alt:hover {
   color: #c0392b;
 }

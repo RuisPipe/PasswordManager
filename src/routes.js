@@ -131,6 +131,14 @@ module.exports = (app) => {
     accountManager.revokeSession(req, res);
   });
 
+  app.post('/pwtrash/restore', async (req, res) => {
+    passwordManager.restorePasswordFromTrash(req, res);
+  });
+
+  app.post('/pwtrash/delete', async (req, res) => {
+    passwordManager.deletePasswordFromTrash(req, res);
+  });
+
   app.get('*', async (req, res) => {
     res.status(404).sendFile(`${__dirname}/public/pages/error.html`);
 

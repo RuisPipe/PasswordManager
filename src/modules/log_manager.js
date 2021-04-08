@@ -191,24 +191,12 @@ exports.getLogDates = async (req, res) => {
     res.status(200).json({dates: dates});
   } else {
     const files = await fs.readdir(`${logPath}/`);
-    const timestamps = [];
-
-    for (const file of files) {
-      const date = file.split('.')[0].split('-');
-      const timestamp = new Date(date[2], date[1] - 1, date[0]).getTime();
-
-      timestamps.push(timestamp);
-    }
-
-    timestamps.sort((a, b) => a - b);
-
     const dates = [];
 
-    for (const timestamp of timestamps) {
-      const date = await getDate('-', timestamp);
-      dates.push(date);
+    for (let file of files) {
+      dates.push(file.split('.')[0]);
     }
-
+  
     cache.set('dates', dates);
 
     res.status(200).json({dates: dates});
@@ -222,28 +210,16 @@ exports.getAccountDates = async (accountId) => {
     if (cache.has(`dates-${accountId}`)) {
       resolve(cache.get(`dates-${accountId}`));
     } else {
-      fs.readdir(`${path}/src/database/accounts/${accountId}/logs`, async (err, files) =>  {
+      fs.readdir(`${path}/src/database/accounts/${accountId}/logs`, (err, files) =>  {
         if (err || !files) {
           resolve([]);
           return;
         }
 
-        const timestamps = [];
-
-        for (const file of files) {
-          const date = file.split('.')[0].split('-');
-          const timestamp = new Date(date[2], date[1] - 1, date[0]).getTime();
-
-          timestamps.push(timestamp);
-        }
-
-        timestamps.sort((a, b) => a - b);
-
         const dates = [];
 
-        for (const timestamp of timestamps) {
-          const date = await getDate('-', timestamp);
-          dates.push(date);
+        for (let file of files) {
+          dates.push(file.split('.')[0]);
         }
     
         cache.set(`dates-${accountId}`, dates);
@@ -275,7 +251,6 @@ exports.getLog = async (req, res) => {
 
     this.log(req.cookies['user_session'], `load account log from <strong>${accountUsername}</strong> [<strong>${req.body.date}</strong>, line <strong>${line}</strong> to <strong>${endLine}</strong>]`);
   } else {
-    console.log('date', date)
     loadLog(res, `log-${date}`, date, line, endLine, `${logPath}/${date}`);
     this.log(req.cookies['user_session'], `load log [<strong>${req.body.date}</strong>, line <strong>${line}</strong> to <strong>${endLine}</strong>]`);
   }
@@ -323,7 +298,7 @@ exports.getLog = async (req, res) => {
     })
     .then(() => {
       logStream.on('error', async (error) => {
-        console.error('Error2', error)
+        console.error('Error', error)
         logStream.close();
       });
   

@@ -34,6 +34,7 @@ exports.createAccount = async (req, res) => {
     permissionsLevel: parseInt(req.body.permissionsLevel),
     sessions: [],
     passwords: [],
+    passwordTrash: [],
     symbols: app.config.symbols.default,
     passwordLimit: parseInt(req.body.passwordLimit),
     createdAt: Date.now()
@@ -165,6 +166,7 @@ exports.createDefaultAccount = async (username, email, password, permissionsLeve
     permissionsLevel: permissionsLevel,
     sessions: [],
     passwords: [],
+    passwordTrash: [],
     symbols: app.config.symbols.default,
     passwordLimit: app.config.account.password.limit,
     createdAt: Date.now(),
@@ -261,7 +263,8 @@ exports.handleLogin = async (req, res) => {
                     .assign({sessions: account.sessions, lastLogin: timestamp})
                     .write();
 
-  res.cookie('user_session', newSession.id, {maxAge: app.config.cookieMaxAge, httpOnly: false, secure: true});
+  res.cookie('user_session', newSession.id, {maxAge: app.config.cookieMaxAge, httpOnly: false, secure: app.config.https ? true : false});
+
   res.status(200).json({success: true, location: '/'});
 
   socketManager.broadcast({
@@ -813,6 +816,7 @@ exports.sendData = async (req, res) => {
 
   const account = await this.getAccountBySessionId(req.cookies['user_session']);
   const sessions = [];
+  const passwordTrash = [];
 
   for (const session of account.sessions) {
     sessions.push({
@@ -824,8 +828,16 @@ exports.sendData = async (req, res) => {
     });
   }
 
+  for (const pwTrash of account.passwordTrash) {
+    passwordTrash.push({
+      id: pwTrash.id,
+      name: pwTrash.name,
+      deletedAt: pwTrash.deletedAt
+    });
+  }
+
   res.status(200).send({
-    stats: account.permissionsLevel === 0 ? undefined :await serverManager.getStats(),
+    stats: account.permissionsLevel === 0 ? undefined : await serverManager.getStats(),
     config: {
       messages: app.config.messages,
       colors: app.config.colors,
@@ -839,6 +851,7 @@ exports.sendData = async (req, res) => {
       email: account.email,
       permissionsLevel: account.permissionsLevel,
       passwords: account.passwords.length,
+      passwordTrash: passwordTrash,
       symbols: account.symbols,
       passwordLimit: account.passwordLimit,
       sessions: sessions,
