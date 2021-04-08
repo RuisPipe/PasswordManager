@@ -285,12 +285,9 @@ function initMyAccountPasswordTrash() {
     div.innerHTML = '';
 
     for (const pwTrash of myAccount.passwordTrash) {
-      console.log(pwTrash)
       addPasswordToTrash(pwTrash);
     }
   }
-
-  console.log(myAccount.passwordTrash, div)
 }
 
 function handleShowPasswordTrash() {
@@ -305,7 +302,6 @@ function addPasswordToTrash(password) {
     deletedAt: CryptoJS.AES.decrypt(password.deletedAt, key).toString(CryptoJS.enc.Utf8)
   };
 
-  console.log('pw', password, decryptedPassword)
   const div = contentAccountSettings.querySelector('#passwordTrash');
 
   const divPasswordTrash = createElement('div', {id: `password-trash-${password.id}`});
@@ -964,7 +960,6 @@ class ModalPasswordsExport {
             if (property === 'url') {
               content += `<a href="${value.startsWith('https://') || value.startsWith('http://') ? value : `https://${value}`}" target="_blank">${value}</a>`;
             } else if (property === 'createdAt' || property === 'modifiedAt') {
-              console.log('val', value)
               content += value === undefined || value === '' ? '' : getFullTime(value);
             } else {
               content += value === undefined ? '' : value;
@@ -2138,18 +2133,12 @@ class ModalPasswordEdit {
     if (this.buttonDelete.value === 'sure?') {
       modalPasswordEdit.close();
 
-      const key = getKey();
-      const timestamp = Date.now().toString();
-      const hash = CryptoJS.AES.encrypt(timestamp, key).toString();
-
-      console.log('del', hash)
-
       fetch(`password/delete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json; charset=utf-8'
         },
-        body: JSON.stringify({passwordId: password.id, deletedAt: hash})
+        body: JSON.stringify({passwordId: password.id, deletedAt: CryptoJS.AES.encrypt(Date.now().toString(), getKey()).toString()})
       })
       .then(response => response.json())
       .then(result => {
@@ -4427,8 +4416,6 @@ function startWebSocket(webSocketServerLocation) {
         } else {
           decryptedPassword.histories = [];
         }
-
-        console.log('enc Hi', encryptedPassword.histories)
 
         if (passwordsMap.size === 0) {
           showNoPasswordsMessage(false);
