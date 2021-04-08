@@ -1,3 +1,4 @@
+const http = require('http');
 const spdy = require('spdy');
 const express = require('express');
 const compression = require('compression');
@@ -80,26 +81,38 @@ module.exports = {
 
 require('./src/routes.js')(app);
 
-const server = spdy.createServer(credentials, app).listen(config.port, config.hostname, async () => {
-  console.log(`[Server] Listening on https://${config.hostname}:${config.port}`);
+let server;
 
+if (config.https) {
+  server = spdy.createServer(credentials, app).listen(config.port, config.hostname, async () => {
+    console.log(`[Server] Listening on https://${config.hostname}:${config.port}`);
+    initDb()
+  });
+} else {
+  server = http.createServer(app).listen(config.port, config.hostname, async () => {
+    console.log(`[Server] Listening on http://${config.hostname}:${config.port}`);
+    initDb()
+  });
+}
+
+function initDb() {
   initDatabase()
-    .then(async (database) => {
-      const accountsCount = await database.get('accounts').size().value();
+  .then(async (database) => {
+    const accountsCount = await database.get('accounts').size().value();
 
-      if (accountsCount === 0) {
-        await createDefaultDirectories();
-        require('./src/modules/account_manager').createMasterAccount();
-      }
+    if (accountsCount === 0) {
+      await createDefaultDirectories();
+      require('./src/modules/account_manager').createMasterAccount();
+    }
 
-      require('./src/modules/email_manager').connect();
-      require('./src/modules/server_manager').loadTemplates();
-      
-      const logManager = require('./src/modules/log_manager');
-      logManager.start();
-      logManager.log('server', 'Started server...');
-    });
-});
+    require('./src/modules/email_manager').connect();
+    require('./src/modules/server_manager').loadTemplates();
+    
+    const logManager = require('./src/modules/log_manager');
+    logManager.start();
+    logManager.log('server', 'Started server...');
+  });
+}
 
 function createDefaultDirectories() {
   return new Promise((resolve) => {
