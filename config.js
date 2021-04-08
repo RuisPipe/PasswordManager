@@ -1,4 +1,5 @@
 module.exports = {
+  https: true,
   hostname: '127.0.0.1',
   port: 50000,
   informations: { // about this service for email
