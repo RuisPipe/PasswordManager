@@ -4648,7 +4648,7 @@ function startWebSocket(webSocketServerLocation) {
         }
   
         if (account.lastLogin) {
-          serverSettingsTabContentAccounts.querySelector(`#lastlogin-${account.id}`).innerHTML = account.lastLogin;
+          serverSettingsTabContentAccounts.querySelector(`#lastlogin-${account.id}`).innerHTML = getFullTime(account.lastLogin);
 
           if (account.id === myAccount.id) {
             setAccount('lastLogin', getFullTime(account.lastLogin));
